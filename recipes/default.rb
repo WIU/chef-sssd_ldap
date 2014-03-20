@@ -31,11 +31,7 @@ if platform_family?('rhel')
 
   # Have authconfig enable SSSD in the pam files
   execute 'authconfig' do
-<<<<<<< HEAD
-    command "authconfig #{node[:sssd_ldap][:authconfig_params]}"
-=======
     command "authconfig #{node['sssd_ldap']['authconfig_params']}"
->>>>>>> upstream/master
     action :nothing
   end
 
