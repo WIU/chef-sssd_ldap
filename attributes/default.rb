@@ -2,7 +2,7 @@
 # Cookbook Name:: sssd_ldap
 # Attribute:: default
 #
-# Copyright 2013, Limelight Networks, Inc.
+# Copyright 2013-2014, Limelight Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -41,3 +41,6 @@ default['sssd_ldap']['ldap_default_bind_dn'] = 'cn=bindaccount,dc=yourcompany,dc
 default['sssd_ldap']['ldap_default_authtok'] = 'bind_password'
 
 default['sssd_ldap']['authconfig_params'] = '--enablesssd --enablesssdauth --enablelocauthorize --update'
+
+default['sssd_ldap']['access_provider'] = nil # Should be set to 'ldap'
+default['sssd_ldap']['ldap_access_filter'] = nil # Can use simple LDAP filter such as 'uid=abc123' or more expressive LDAP filters like '(&(objectClass=employee)(department=ITSupport))'

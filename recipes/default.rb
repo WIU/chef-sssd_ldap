@@ -2,7 +2,7 @@
 # Cookbook Name:: sssd_ldap
 # Recipe:: default
 #
-# Copyright 2013, Limelight Networks, Inc.
+# Copyright 2013-2014, Limelight Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,11 +17,12 @@
 # limitations under the License.
 #
 
+package 'sssd' do
+  action :install
+end
+
 # Only run on RHEL
 if platform_family?('rhel')
-  package 'sssd' do
-    action :install
-  end
 
   # authconfig allows cli based intelligent manipulation of the pam.d files
   package 'authconfig' do
@@ -30,7 +31,11 @@ if platform_family?('rhel')
 
   # Have authconfig enable SSSD in the pam files
   execute 'authconfig' do
+<<<<<<< HEAD
     command "authconfig #{node[:sssd_ldap][:authconfig_params]}"
+=======
+    command "authconfig #{node['sssd_ldap']['authconfig_params']}"
+>>>>>>> upstream/master
     action :nothing
   end
 
@@ -39,25 +44,31 @@ if platform_family?('rhel')
     source 'nsswitch.conf.erb'
     owner 'root'
     group 'root'
-    mode 00644
+    mode '0644'
   end
 
-  template '/etc/sssd/sssd.conf' do
-    source 'sssd.conf.erb'
-    owner 'root'
-    group 'root'
-    mode 00600
-    notifies :run, 'execute[authconfig]'
-  end
+end
 
-  service 'sssd' do
-    supports :status => true, :restart => true, :reload => true
-    action [:enable, :start]
+# sssd automatically modifies the PAM files with pam-auth-update and /etc/nsswitch.conf, so all that's left is to configure /etc/sssd/sssd.conf
+template '/etc/sssd/sssd.conf' do
+  source 'sssd.conf.erb'
+  owner 'root'
+  group 'root'
+  mode '0600'
+  if platform_family?('rhel')
+    notifies :run, 'execute[authconfig]', :immediately # this needs to run immediately so it doesn't happen after sssd service block below, or sssd is not running when recipe completes
+  else
+    notifies :restart, 'service[sssd]', :immediately
   end
+end
 
-  # nscd caching will break sssd and is not necessary
-  service 'nscd' do
-    supports :status => true, :restart => true, :reload => true
-    action [:disable, :stop]
-  end
+service 'sssd' do
+  supports :status => true, :restart => true, :reload => true
+  action [:enable, :start]
+end
+
+# nscd caching will break sssd and is not necessary
+service 'nscd' do
+  supports :status => true, :restart => true, :reload => true
+  action [:disable, :stop]
 end
